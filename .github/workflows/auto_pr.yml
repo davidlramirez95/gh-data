@@ -1,0 +1,29 @@
+name: GH Events Auto PR
+
+on:
+  workflow_run:
+    workflows:
+      - "ci"
+    types:
+      - completed
+
+jobs:
+  trigger_pr_creation:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - uses: octokit/request-action@v2.x
+        name: Trigger PR Creation in possum
+        id: possum_auto_pr
+        with:
+          route: POST /repos/{owner}/{repo}/pulls
+          owner: davidlramirez95
+          repo: gh-events
+          title: "Dependabot Update from trak-monitoring"
+          head: main  # branch from trak-monitoring
+          base: main  # target branch on possum
+          body: |
+            This PR is automatically created by a GitHub Actions workflow in trak-monitoring
+            to notify and trigger updates in possum whenever there's an update.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
